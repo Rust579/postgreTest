@@ -19,10 +19,10 @@ func Run() {
 
 	fmt.Println("Successfully connected!")
 
-	if err = repo.CreateDatabase(db, "PsgDb"); err != nil {
+	if err = repo.CreatePersonTable(db); err != nil {
 		log.Fatalln("Ошибка создания базы")
 	}
-	fmt.Printf("Database %s created successfully.\n", repo.Dbname)
+	fmt.Printf("Database %s created successfully.\n", "mydatabase")
 
 	<-gfsd
 }
