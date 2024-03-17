@@ -45,19 +45,19 @@ func InsertStudents(db *sql.DB, data []service.Student) error {
 		var count int
 		err := db.QueryRow(query, s.ID).Scan(&count)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		if count > 0 {
 			continue
 		}
 
 		query = `
-		INSERT INTO students (id_student, fio_student, passport, active_directions, academic_directions)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO students (id_student, id_person, stud_number, id_group)
+		VALUES ($1, $2, $3, $4)
 	`
-		_, err = db.Exec(query, s.ID, s.Fio, s.Passport, s.ActiveDirections, s.AcademicDirections)
+		_, err = db.Exec(query, s.ID, s.PersonID, s.StudNumber, s.GroupID)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
 	return nil
@@ -75,7 +75,7 @@ func InsertDepartments(db *sql.DB, data []service.Department) error {
 		var count int
 		err := db.QueryRow(query, s.ID).Scan(&count)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		if count > 0 {
 			continue
@@ -87,7 +87,7 @@ func InsertDepartments(db *sql.DB, data []service.Department) error {
 	`
 		_, err = db.Exec(query, s.ID, s.Name)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
 	return nil
@@ -105,7 +105,7 @@ func InsertSpecialties(db *sql.DB, data []service.Specialty) error {
 		var count int
 		err := db.QueryRow(query, s.ID).Scan(&count)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		if count > 0 {
 			continue
@@ -117,7 +117,7 @@ func InsertSpecialties(db *sql.DB, data []service.Specialty) error {
 	`
 		_, err = db.Exec(query, s.ID, s.Name, s.DepartmentID)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
 	return nil
@@ -135,19 +135,19 @@ func InsertGroups(db *sql.DB, data []service.Group) error {
 		var count int
 		err := db.QueryRow(query, s.ID).Scan(&count)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		if count > 0 {
 			continue
 		}
 
 		query = `
-		INSERT INTO groups (id_group, group_number, id_specialty)
-		VALUES ($1, $2, $3)
+		INSERT INTO groups (id_group, group_number, education_form, id_specialty, course_number)
+		VALUES ($1, $2, $3, $4, $5)
 	`
-		_, err = db.Exec(query, s.ID, s.Number, s.SpecialtyID)
+		_, err = db.Exec(query, s.ID, s.Number, s.EducationForm, s.SpecialtyID, s.CourseNumber)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
 	return nil
@@ -165,19 +165,19 @@ func InsertPersons(db *sql.DB, data []service.Person) error {
 		var count int
 		err := db.QueryRow(query, s.ID).Scan(&count)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		if count > 0 {
 			continue
 		}
 
 		query = `
-		INSERT INTO persons (id_person, first_name, last_name, phone, age, birth_date, passport)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		INSERT INTO persons (id_person, first_name, last_name, birth_date, passport, citizenship)
+		VALUES ($1, $2, $3, $4, $5, $6)
 	`
-		_, err = db.Exec(query, s.ID, s.FirstName, s.LastName, s.Phone, s.Age, s.BirthDate, s.Passport)
+		_, err = db.Exec(query, s.ID, s.FirstName, s.LastName, s.BirthDate, s.Passport, s.Citizenship)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
 	return nil
@@ -195,19 +195,79 @@ func InsertMovement(db *sql.DB, data []service.StudentMovement) error {
 		var count int
 		err := db.QueryRow(query, s.ID).Scan(&count)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		if count > 0 {
 			continue
 		}
 
 		query = `
-		INSERT INTO student_movement (id_move, id_student, id_department, id_specialty, id_group, status, education_form, transfer_date)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		INSERT INTO student_movement (id_move, id_student, status, transfer_date, course_number, id_group)
+		VALUES ($1, $2, $3, $4, $5, $6)
 	`
-		_, err = db.Exec(query, s.ID, s.StudentID, s.DepartmentID, s.SpecialtyID, s.GroupID, s.Status, s.EducationForm, s.TransferDate)
+		_, err = db.Exec(query, s.ID, s.StudentID, s.Status, s.TransferDate, s.CourseNumber, s.GroupId)
 		if err != nil {
-			log.Fatal(err)
+			return err
+		}
+	}
+	return nil
+}
+
+func InsertAddresses(db *sql.DB, data []service.Address) error {
+
+	for _, s := range data {
+
+		query := `
+			SELECT COUNT(*)
+			FROM addresses
+			WHERE id_address = $1
+		`
+		var count int
+		err := db.QueryRow(query, s.ID).Scan(&count)
+		if err != nil {
+			return err
+		}
+		if count > 0 {
+			continue
+		}
+
+		query = `
+		INSERT INTO addresses (id_address, address, id_person, address_type)
+		VALUES ($1, $2, $3, $4)
+	`
+		_, err = db.Exec(query, s.ID, s.Address, s.PersonID, s.AddressType)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func InsertPhones(db *sql.DB, data []service.Phone) error {
+
+	for _, s := range data {
+
+		query := `
+			SELECT COUNT(*)
+			FROM phones
+			WHERE id_phone = $1
+		`
+		var count int
+		err := db.QueryRow(query, s.ID).Scan(&count)
+		if err != nil {
+			return err
+		}
+		if count > 0 {
+			continue
+		}
+
+		query = `
+		INSERT INTO phones (id_phone, phone, id_person)
+		VALUES ($1, $2, $3)
+	`
+		_, err = db.Exec(query, s.ID, s.Phone, s.PersonID)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
@@ -216,12 +276,13 @@ func InsertMovement(db *sql.DB, data []service.StudentMovement) error {
 func CreatePersonTable(db *sql.DB) error {
 	var query = []string{
 		`
-		CREATE TABLE IF NOT EXISTS students (
-			id_student INT PRIMARY KEY,
-			fio_student VARCHAR(100),
+		CREATE TABLE IF NOT EXISTS persons (
+			id_person INT PRIMARY KEY,
+			first_name VARCHAR(100),
+		    last_name VARCHAR(100),
+			birth_date DATE,
 		    passport VARCHAR(100),
-		    active_directions INT,
-		    academic_directions INT
+		    citizenship VARCHAR(100)
 		)
 		`,
 		`
@@ -242,35 +303,49 @@ func CreatePersonTable(db *sql.DB) error {
 		CREATE TABLE IF NOT EXISTS groups (
 			id_group INT PRIMARY KEY,
 			group_number VARCHAR(10) UNIQUE,
+		    education_form VARCHAR(20),
 			id_specialty INT,
+		    course_number INT,
 			FOREIGN KEY (id_specialty) REFERENCES specialties(id_specialty)
+		)
+		`,
+		`
+		CREATE TABLE IF NOT EXISTS students (
+			id_student INT PRIMARY KEY,
+			id_person INT,
+			stud_number INT,
+			id_group INT,
+			FOREIGN KEY (id_person) REFERENCES persons(id_person),
+		    FOREIGN KEY (id_group) REFERENCES groups(id_group)
 		)
 		`,
 		`
 		CREATE TABLE IF NOT EXISTS student_movement (
 			id_move SERIAL PRIMARY KEY,
 			id_student INT,
-			id_department INT,
-			id_specialty INT,
 			id_group INT,
+			course_number INT,
 			status VARCHAR(20),
-		    education_form VARCHAR(20),
 			transfer_date DATE,
 			FOREIGN KEY (id_student) REFERENCES students(id_student),
-			FOREIGN KEY (id_department) REFERENCES departments(id_department),
-			FOREIGN KEY (id_specialty) REFERENCES specialties(id_specialty),
-			FOREIGN KEY (id_group) REFERENCES groups(id_group)
+		    FOREIGN KEY (id_group) REFERENCES groups(id_group)
 		)
 		`,
 		`
-		CREATE TABLE IF NOT EXISTS persons (
-			id_person INT PRIMARY KEY,
-			first_name VARCHAR(100),
-		    last_name VARCHAR(100),
-		    phone VARCHAR(100),
-		    age VARCHAR(100),
-			birth_date DATE,
-		    passport VARCHAR(100)
+		CREATE TABLE IF NOT EXISTS addresses (
+			id_address INT PRIMARY KEY,
+			address VARCHAR(100),
+		    address_type VARCHAR(100),
+		    id_person INT,
+		    FOREIGN KEY (id_person) REFERENCES persons(id_person)
+		)
+		`,
+		`
+		CREATE TABLE IF NOT EXISTS phones (
+			id_phone INT PRIMARY KEY, --Нужен ли тут PRIMARY KEY
+			phone VARCHAR(100),
+		    id_person INT,
+		    FOREIGN KEY (id_person) REFERENCES persons(id_person)
 		)
 		`,
 	}
